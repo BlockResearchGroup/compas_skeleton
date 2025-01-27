@@ -45,6 +45,7 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+.pytest_cache/
 
 # Translations
 *.mo
@@ -94,24 +95,46 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# PyCharm project settings
+.idea/
+
 # mkdocs documentation
 /site
 
 # mypy
 .mypy_cache/
 
-# ==============================================================================
-# compas_skeleton
-# ==============================================================================
+# ------------------------------------------------------------------------------
+# compas
+# ------------------------------------------------------------------------------
+
+dist/docs
+
+generated/
 
 *.3dmbak
 *.rhl
-*.rui_bak
+
+libs/**
+!libs/PLACEHOLDER
 
 temp/**
 !temp/PLACEHOLDER
 
-.DS_Store
-*.json
-test.py
+src/.build/**
+
+data/
+
+*.tar.gz
+
+*.pickle
+
+*.DS_Store
+
 .vscode
+
+docs/api/generated/
+
+scripts/
+
+.ruff_cache

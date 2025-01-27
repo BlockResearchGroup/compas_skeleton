@@ -1,60 +1,28 @@
-# compas_skeleton
+# COMPAS Skeleton
 
-Topologically generating mesh from a set of lines and allowing interactive editing.
+Mesh modelling using skeleton graphs.
 
-## install requirement
+## Installation
 
-Anaconda/conda and COMPAS >= 0.15.5 is required.
+Stable releases can be installed from PyPI.
 
-1. Set up a dedicated `conda` environment.
+```bash
+pip install compas_skeleton
+```
 
-   On Windows.
+To install the latest version for development, do:
 
-   ```bash
-   conda create -n yourenv python=3.7
-   ```
+```bash
+git clone https://github.com/blockresearchgroup/compas_skeleton.git
+cd compas_skeleton
+pip install -e ".[dev]"
+```
 
-   On Mac, also install Python as a framework (add ``python.app``).
+## Documentation
 
-   ```bash
-   conda create -n yourenv python=3.7 python.app
-   ```
+For further "getting started" instructions, a tutorial, examples, and an API reference,
+please check out the online documentation here: [COMPAS Skeleton docs](https://blockresearchgroup.github.io/compas_skeleton)
 
-   Activate the environment
+## Issue Tracker
 
-   ```bash
-   conda activate yourenv
-   ```
-
-2. Install COMPAS.
-
-   navigate to the root of the `compas` repo, and do
-
-   ```bash
-   pip install -e .
-   ```
-   more about installing compas: [COMPAS](https://compas-dev.github.io/main/gettingstarted/installation.html)
-
-3. Install Skeleton.
-
-   navigate to the root of the `compas_skeleton` repo, and do
-
-   ```bash
-   pip install -e .
-   ```
-
-   To verify, open an interactive Python prompt and import the installed packages.
-
-   ```python
-   >>> import compas
-   >>> import compas_skeleton
-   >>> exit()
-   ```
-
-4. Install packages for Rhino.
-
-   From the root of `compas_skeleton`, do
-
-   ```bash
-   python -m compas_rhino.install -p compas compas_skeleton
-   ```
+If you find a bug or if you have a problem with running the code, please file an issue on the [Issue Tracker](https://github.com/blockresearchgroup/compas_skeleton/issues).
