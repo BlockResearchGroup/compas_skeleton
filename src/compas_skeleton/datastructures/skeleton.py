@@ -1,13 +1,13 @@
-# from math import radians
-from compas.geometry import Line
-from compas.geometry import Polyline
+from math import radians
 
-# from compas.geometry import intersection_line_line
-from compas.geometry import offset_polyline
 from compas.datastructures import Datastructure
 from compas.datastructures import Graph
-from compas.datastructures.graph.duality import node_sort_neighbors
 from compas.datastructures import Mesh
+from compas.datastructures.graph.duality import node_sort_neighbors
+from compas.geometry import Line
+from compas.geometry import Polyline
+from compas.geometry import intersection_line_line
+from compas.geometry import offset_polyline
 from compas.itertools import flatten
 from compas.itertools import pairwise
 from compas.itertools import window
@@ -153,6 +153,7 @@ class SkeletonMesh(Mesh):
             vertex = mesh.add_vertex(key=node, x=x, y=y, z=z, node=node)
 
         loop_vertices = {}
+
         for loop, polyline in zip(graph.loops, graph.polylines):
             triplets = list(window(loop[:1] + loop + loop[-1:], 3))
             vertices = []
@@ -165,6 +166,30 @@ class SkeletonMesh(Mesh):
             vertices = loop_vertices[loop]
             for (u, v), (uu, vv) in zip(pairwise(loop), pairwise(vertices)):
                 mesh.add_face([uu, u, v, vv])
+
+        if graph.leaf_angle != 0:
+            angle = radians(graph.leaf_angle)
+
+            for loop, vertices in loop_vertices.items():
+                u = loop[0]
+                uu, vv = vertices[0:2]
+                a, b, d = mesh.vertices_attributes(names="xyz", keys=[u, uu, vv])
+                ab = Line(a, b)
+                bd = Line(b, d)
+                ab.rotate(angle=-angle, axis=[0, 0, 1], point=a)
+                x = intersection_line_line(ab, bd)[0]
+                if x:
+                    mesh.vertex_attributes(uu, names="xyz", values=x)
+
+                u = loop[-1]
+                vv, uu = vertices[-2:]
+                a, b, d = mesh.vertices_attributes(names="xyz", keys=[u, uu, vv])
+                ab = Line(a, b)
+                bd = Line(b, d)
+                ab.rotate(angle=angle, axis=[0, 0, 1], point=a)
+                x = intersection_line_line(ab, bd)[0]
+                if x:
+                    mesh.vertex_attributes(uu, names="xyz", values=x)
 
         mesh._loop_vertices = loop_vertices
         return mesh
@@ -182,6 +207,8 @@ class Skeleton(Datastructure):
     ----------
     node_width : float
         Width of the coarse mesh at the nodes of the graph.
+    leaf_angle : float
+        The angle formed by the boundary edges of the coarse mesh connected to the graph leaves.
     density : int
         Number of subd iterations used to generate the final skeleton pattern.
     graph : :class:`SkeletonGraph`
@@ -208,6 +235,16 @@ class Skeleton(Datastructure):
     @node_width.setter
     def node_width(self, value: float) -> None:
         self.graph.node_width = value
+        self._mesh_is_up_to_date = False
+        self._pattern = None
+
+    @property
+    def leaf_angle(self) -> float:
+        return self.graph.leaf_angle
+
+    @leaf_angle.setter
+    def leaf_angle(self, value: float) -> None:
+        self.graph.leaf_angle = value
         self._mesh_is_up_to_date = False
         self._pattern = None
 
@@ -248,16 +285,34 @@ class Skeleton(Datastructure):
             if node is not None:
                 xyz = self.graph.node_attributes(node, names="xyz")
                 self.mesh.vertex_attributes(vertex, names="xyz", values=xyz)
-                continue
 
-            for loop in self.mesh.loop_vertices:
-                vertices = self.mesh.loop_vertices[loop]
-                points = offset_polyline(
-                    self.graph.nodes_attributes(names="xyz", keys=loop),
-                    distance=self.node_width,
-                )
-                for vertex, point in zip(vertices, points):
-                    self.mesh.vertex_attributes(vertex, names="xyz", values=point)
+        angle = radians(self.graph.leaf_angle)
+
+        for loop, vertices in self.mesh.loop_vertices.items():
+            points = offset_polyline(self.graph.nodes_attributes(names="xyz", keys=loop), distance=self.node_width)
+            for vertex, point in zip(vertices, points):
+                self.mesh.vertex_attributes(vertex, names="xyz", values=point)
+
+            if angle != 0:
+                u = loop[0]
+                uu, vv = vertices[0:2]
+                a, b, d = self.mesh.vertices_attributes(names="xyz", keys=[u, uu, vv])
+                ab = Line(a, b)
+                bd = Line(b, d)
+                ab.rotate(angle=-angle, axis=[0, 0, 1], point=a)
+                x = intersection_line_line(ab, bd)[0]
+                if x:
+                    self.mesh.vertex_attributes(uu, names="xyz", values=x)
+
+                u = loop[-1]
+                vv, uu = vertices[-2:]
+                a, b, d = self.mesh.vertices_attributes(names="xyz", keys=[u, uu, vv])
+                ab = Line(a, b)
+                bd = Line(b, d)
+                ab.rotate(angle=angle, axis=[0, 0, 1], point=a)
+                x = intersection_line_line(ab, bd)[0]
+                if x:
+                    self.mesh.vertex_attributes(uu, names="xyz", values=x)
 
     def compute_pattern(self) -> None:
         edges = list(flatten(self.mesh.edges_on_boundaries()))

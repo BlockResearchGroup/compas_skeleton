@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Added support for angled leaf edges (and rounded supports).
+* Added `compas_skeleton.datastructures.Skeleton.leaf_angle`.
+
 ### Changed
 
 ### Removed
